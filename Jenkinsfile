@@ -35,7 +35,7 @@ pipeline {
 
     post {
         always {
-            sh 'docker compose -f docker-compose.yml down'
+            sh 'docker-compose -f docker-compose.yml down'
             archiveArtifacts artifacts: 'locust*.csv', allowEmptyArchive: true
         }
     }
