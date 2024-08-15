@@ -10,24 +10,33 @@ pipeline {
 
         stage('Build and Test') {
             steps {
-                sh 'docker-compose -f /path/to/laravel/docker-compose.yml exec -T laravel.test php artisan test'
+                sh 'docker-compose -f docker-compose.yml up -d'
+                sh 'docker-compose -f docker-compose.yml exec -T laravel.test php artisan test'
             }
         }
 
         stage('Run Locust Tests') {
             steps {
-                sh """
-                docker-compose -f /path/to/locust/docker-compose.yml run --rm locust-master \
-                    locust -f /mnt/locust/locustfiles/ferris/locustfile.py \
-                    --host=http://laravel.test --headless -u 20 -r 2 --run-time 5m
-                """
+                sh '''
+                docker run --rm --network nebuchadnezzar_network \
+                    -v ${WORKSPACE}:/mnt/locust \
+                    locustio/locust \
+                    -f /mnt/locust/tests/locust/locustfile.py \
+                    --host=http://localhost:8000 \
+                    --users 10 \
+                    --spawn-rate 1 \
+                    --run-time 1m \
+                    --headless \
+                    --only-summary
+                '''
             }
         }
     }
 
     post {
         always {
-            archiveArtifacts artifacts: 'locust*.csv', fingerprint: true
+            sh 'docker-compose -f docker-compose.yml down'
+            archiveArtifacts artifacts: 'locust*.csv', allowEmptyArchive: true
         }
     }
 }
