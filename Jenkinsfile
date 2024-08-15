@@ -10,19 +10,18 @@ pipeline {
 
         stage('Build and Test') {
             steps {
-                sh '/usr/local/bin/docker-compose -f docker-compose.yml up -d'
-                sh '/usr/local/bin/docker-compose -f docker-compose.yml exec -T laravel.test php artisan test'
+                sh './vendor/bin/sail up -d'
+                sh './vendor/bin/sail artisan test'
             }
         }
 
         stage('Run Locust Tests') {
             steps {
                 sh '''
-                docker run --rm --network nebuchadnezzar_network \
-                    -v ${WORKSPACE}:/mnt/locust \
-                    locustio/locust \
-                    -f /mnt/locust/tests/locust/locustfile.py \
-                    --host=http://laravel.test \
+                ./vendor/bin/sail exec -T laravel.test pip install locust
+                ./vendor/bin/sail exec -T laravel.test locust \
+                    -f tests/locust/locustfile.py \
+                    --host=http://localhost \
                     --users 10 \
                     --spawn-rate 1 \
                     --run-time 1m \
@@ -35,7 +34,7 @@ pipeline {
 
     post {
         always {
-            sh '/usr/local/bin/docker-compose -f docker-compose.yml down'
+            sh './vendor/bin/sail down'
             archiveArtifacts artifacts: 'locust*.csv', allowEmptyArchive: true
         }
     }
