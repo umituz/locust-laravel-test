@@ -10,8 +10,8 @@ pipeline {
 
         stage('Build and Test') {
             steps {
-                sh 'docker-compose -f docker-compose.yml up -d'
-                sh 'docker-compose -f docker-compose.yml exec -T laravel.test php artisan test'
+                sh 'docker compose -f docker-compose.yml up -d'
+                sh 'docker compose -f docker-compose.yml exec -T laravel.test php artisan test'
             }
         }
 
@@ -22,7 +22,7 @@ pipeline {
                     -v ${WORKSPACE}:/mnt/locust \
                     locustio/locust \
                     -f /mnt/locust/tests/locust/locustfile.py \
-                    --host=http://localhost:8000 \
+                    --host=http://laravel.test \
                     --users 10 \
                     --spawn-rate 1 \
                     --run-time 1m \
@@ -35,7 +35,7 @@ pipeline {
 
     post {
         always {
-            sh 'docker-compose -f docker-compose.yml down'
+            sh 'docker compose -f docker-compose.yml down'
             archiveArtifacts artifacts: 'locust*.csv', allowEmptyArchive: true
         }
     }
