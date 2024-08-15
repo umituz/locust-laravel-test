@@ -10,8 +10,8 @@ pipeline {
 
         stage('Build and Test') {
             steps {
-                sh 'docker compose -f docker-compose.yml up -d'
-                sh 'docker compose -f docker-compose.yml exec -T laravel.test php artisan test'
+                sh 'docker-compose -f docker-compose.yml up -d'
+                sh 'docker-compose -f docker-compose.yml exec -T laravel.test php artisan test'
             }
         }
 
