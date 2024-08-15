@@ -10,8 +10,8 @@ pipeline {
 
         stage('Build and Test') {
             steps {
-                sh 'docker-compose -f docker-compose.yml up -d'
-                sh 'docker-compose -f docker-compose.yml exec -T laravel.test php artisan test'
+                sh '/usr/local/bin/docker-compose -f docker-compose.yml up -d'
+                sh '/usr/local/bin/docker-compose -f docker-compose.yml exec -T laravel.test php artisan test'
             }
         }
 
@@ -35,7 +35,7 @@ pipeline {
 
     post {
         always {
-            sh 'docker-compose -f docker-compose.yml down'
+            sh '/usr/local/bin/docker-compose -f docker-compose.yml down'
             archiveArtifacts artifacts: 'locust*.csv', allowEmptyArchive: true
         }
     }
